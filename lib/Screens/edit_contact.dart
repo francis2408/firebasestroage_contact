@@ -1,10 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'dart:io';
-import '../model/contact.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
+import 'package:firebase_login/model/contact.dart';
 
 class EditContact extends StatefulWidget {
   const EditContact(id, {Key? key}) : super(key: key);
@@ -24,16 +24,17 @@ class _EditContactState extends State<EditContact> {
   String? _photoUrl;
 
   // handle text editing controller
-  TextEditingController _fnController = TextEditingController();
-  TextEditingController _lnController = TextEditingController();
-  TextEditingController _poController = TextEditingController();
-  TextEditingController _emController = TextEditingController();
-  TextEditingController _adController = TextEditingController();
+  final TextEditingController _fnController = TextEditingController();
+  final TextEditingController _lnController = TextEditingController();
+  final TextEditingController _poController = TextEditingController();
+  final TextEditingController _emController = TextEditingController();
+  final TextEditingController _adController = TextEditingController();
 
   bool isLoading = true;
 
   // db/firebase helper
-  DatabaseReference _databaseReference = FirebaseDatabase.instance.ref();
+  final DatabaseReference _databaseReference =
+      FirebaseDatabase.instance.reference();
 
   @override
   void initState() {
@@ -73,8 +74,15 @@ class _EditContactState extends State<EditContact> {
         _phone.isNotEmpty &&
         _email.isNotEmpty &&
         _address.isNotEmpty) {
-      Contact contact = Contact.withId(this.id, this._firstName, this._lastName,
-          this._phone, this._email, this._address, this._photoUrl);
+      Contact contact = Contact.withId(
+        id,
+        _firstName,
+        _lastName,
+        _phone,
+        _email,
+        _address,
+        _photoUrl!,
+      );
 
       await _databaseReference.child(id!).set(contact.toJson());
       navigateToLostScreen(context);
@@ -83,14 +91,15 @@ class _EditContactState extends State<EditContact> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text("Field required"),
-              content: Text("All fields are required"),
+              title: const Text("Field required"),
+              content: const Text("All fields are required"),
               actions: <Widget>[
                 TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text('Close'))
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Close'),
+                ),
               ],
             );
           });
@@ -99,13 +108,13 @@ class _EditContactState extends State<EditContact> {
 
   // pick Image
   Future pickImage() async {
-    final _picker = ImagePicker();
-    final PickedFile = await _picker.pickImage(
+    final imagePicker = ImagePicker();
+    final pickedFile = await imagePicker.pickImage(
       source: ImageSource.gallery,
       maxHeight: 200.0,
       maxWidth: 200.0,
     );
-    File file = File(PickedFile!.path);
+    File file = File(pickedFile!.path);
     String fileName = basename(file.path);
     uploadImage(file, fileName);
   }
@@ -130,42 +139,48 @@ class _EditContactState extends State<EditContact> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Edit Contact"),
+        title: const Text("Edit Contact"),
       ),
       body: Container(
         child: isLoading
-            ? Center(
+            ? const Center(
                 child: CircularProgressIndicator(),
               )
             : Padding(
-                padding: EdgeInsets.all(20.0),
+                padding: const EdgeInsets.all(20.0),
                 child: ListView(
                   children: <Widget>[
                     //image view
                     Container(
-                        margin: EdgeInsets.only(top: 20.0),
-                        child: GestureDetector(
-                          onTap: () {
-                            this.pickImage();
-                          },
-                          child: Center(
-                            child: Container(
-                                width: 100.0,
-                                height: 100.0,
-                                decoration: new BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    image: new DecorationImage(
-                                      fit: BoxFit.cover,
-                                      image: _photoUrl == "empty"
-                                          ? AssetImage("assets/images/logo.png")
-                                              as ImageProvider
-                                          : NetworkImage(_photoUrl!),
-                                    ))),
+                      margin: const EdgeInsets.only(top: 20.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          pickImage();
+                        },
+                        child: Center(
+                          child: Container(
+                            width: 100.0,
+                            height: 100.0,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              image: DecorationImage(
+                                fit: BoxFit.cover,
+                                image: _photoUrl == "empty"
+                                    ? const AssetImage("assets/images/logo.png")
+                                        as ImageProvider
+                                    : NetworkImage(
+                                        _photoUrl!,
+                                        scale: 1.0,
+                                      ),
+                              ),
+                            ),
                           ),
-                        )),
+                        ),
+                      ),
+                    ),
                     //
                     Container(
-                      margin: EdgeInsets.only(top: 20.0),
+                      margin: const EdgeInsets.only(top: 20.0),
                       child: TextField(
                         onChanged: (value) {
                           setState(() {
@@ -176,13 +191,14 @@ class _EditContactState extends State<EditContact> {
                         decoration: InputDecoration(
                           labelText: 'First Name',
                           border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(5.0)),
+                            borderRadius: BorderRadius.circular(5.0),
+                          ),
                         ),
                       ),
                     ),
                     //
                     Container(
-                      margin: EdgeInsets.only(top: 20.0),
+                      margin: const EdgeInsets.only(top: 20.0),
                       child: TextField(
                         onChanged: (value) {
                           setState(() {
@@ -199,7 +215,7 @@ class _EditContactState extends State<EditContact> {
                     ),
                     //
                     Container(
-                      margin: EdgeInsets.only(top: 20.0),
+                      margin: const EdgeInsets.only(top: 20.0),
                       child: TextField(
                         onChanged: (value) {
                           setState(() {
@@ -217,7 +233,7 @@ class _EditContactState extends State<EditContact> {
                     ),
                     //
                     Container(
-                      margin: EdgeInsets.only(top: 20.0),
+                      margin: const EdgeInsets.only(top: 20.0),
                       child: TextField(
                         onChanged: (value) {
                           setState(() {
@@ -235,7 +251,7 @@ class _EditContactState extends State<EditContact> {
                     ),
                     //
                     Container(
-                      margin: EdgeInsets.only(top: 20.0),
+                      margin: const EdgeInsets.only(top: 20.0),
                       child: TextField(
                         onChanged: (value) {
                           setState(() {
@@ -252,14 +268,21 @@ class _EditContactState extends State<EditContact> {
                     ),
                     // update button
                     Container(
-                      padding: EdgeInsets.only(top: 20.0),
-                      child: RaisedButton(
-                        padding: EdgeInsets.fromLTRB(100.0, 20.0, 100.0, 20.0),
+                      padding: const EdgeInsets.only(top: 20.0),
+                      child: ElevatedButton(
                         onPressed: () {
                           updateContact(context);
                         },
-                        color: Colors.red,
-                        child: Text(
+                        style: ElevatedButton.styleFrom(
+                          primary: Colors.red,
+                          padding: const EdgeInsets.fromLTRB(
+                            100.0,
+                            20.0,
+                            100.0,
+                            20.0,
+                          ),
+                        ),
+                        child: const Text(
                           "Update",
                           style: TextStyle(
                             fontSize: 20.0,

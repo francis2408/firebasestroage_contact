@@ -1,74 +1,87 @@
 import 'package:firebase_database/firebase_database.dart';
 
 class Contact {
-  String? _id;
-  String? _firstName;
-  String? _lastName;
-  String? _phone;
-  String? _email;
-  String? _address;
-  String? _photoUrl;
+  String? id;
+  String firstName;
+  String lastName;
+  String phone;
+  String email;
+  String address;
+  String photoUrl;
 
-  //constructor for add
-  Contact(this._firstName, this._lastName, this._phone, this._email,
-      this._address, this._photoUrl);
+  // constructor for add
+  Contact(
+    this.firstName,
+    this.lastName,
+    this.phone,
+    this.email,
+    this.address,
+    this.photoUrl,
+  );
 
   //constructor for edit
-  Contact.withId(this._id, this._firstName, this._lastName, this._phone,
-      this._email, this._address, this._photoUrl);
+  Contact.withId(
+    this.id,
+    this.firstName,
+    this.lastName,
+    this.phone,
+    this.email,
+    this.address,
+    this.photoUrl,
+  );
 
   //getters
-  String get id => _id!;
-  String get firstName => _firstName!;
-  String get lastName => _lastName!;
-  String get phone => _phone!;
-  String get email => _email!;
-  String get address => _address!;
-  String get photoUrl => _photoUrl!;
+  String get getId => id!;
+  String get getFirstName => firstName;
+  String get getLastName => lastName;
+  String get getPhone => phone;
+  String get getEmail => email;
+  String get getAddress => address;
+  String get getPhotoUrl => photoUrl;
 
   //setters
-  set firstName(String firstName) {
-    _firstName = firstName;
+  set setFirstName(String firstName) {
+    firstName = firstName;
   }
 
-  set lastName(String lastName) {
-    _lastName = lastName;
+  set setLastName(String lastName) {
+    lastName = lastName;
   }
 
-  set phone(String phone) {
-    _phone = phone;
+  set setPhone(String phone) {
+    phone = phone;
   }
 
-  set email(String email) {
-    _email = email;
+  set setEmail(String email) {
+    email = email;
   }
 
-  set firstNaddressame(String address) {
-    _address = address;
+  set setAddress(String address) {
+    address = address;
   }
 
-  set photoUrl(String photoUrl) {
-    _photoUrl = photoUrl;
+  set setPhotoUrl(String photoUrl) {
+    photoUrl = photoUrl;
   }
 
-  Contact.fromSnapshot(DataSnapshot snapshot) {
-    _id = snapshot.key;
-    _firstName = (snapshot.value! as Map<String, dynamic>)['firstName'];
-    _lastName = (snapshot.value! as Map<String, dynamic>)['lastName'];
-    _phone = (snapshot.value! as Map<String, dynamic>)['phone'];
-    _email = (snapshot.value! as Map<String, dynamic>)['email'];
-    _address = (snapshot.value! as Map<String, dynamic>)['address'];
-    _photoUrl = (snapshot.value! as Map<String, dynamic>)['photoUrl'];
-  }
+  static Contact fromSnapshot(DataSnapshot snap) => Contact.withId(
+        snap.key,
+        snap.value['firstName'],
+        snap.value['lastName'],
+        snap.value['phone'],
+        snap.value['email'],
+        snap.value['address'],
+        snap.value['photoUrl'],
+      );
 
   Map<String, dynamic> toJson() {
     return {
-      "firstName": _firstName,
-      "lastName": _lastName,
-      "phone": _phone,
-      "email": _email,
-      "address": _address,
-      "photoUrl": _photoUrl,
+      "firstName": firstName,
+      "lastName": lastName,
+      "phone": phone,
+      "email": email,
+      "address": address,
+      "photoUrl": photoUrl,
     };
   }
 }
