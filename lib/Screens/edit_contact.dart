@@ -1,21 +1,21 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'dart:io';
-import '../model/contact.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
+import 'package:firebase_login/model/contact.dart';
 
 class EditContact extends StatefulWidget {
-  const EditContact(id, {Key? key}) : super(key: key);
-
+  final String id;
+  EditContact(this.id);
   @override
-  State<EditContact> createState() => _EditContactState();
+  _EditContactState createState() => _EditContactState(id);
 }
 
 class _EditContactState extends State<EditContact> {
-  String? id;
-  // _EditContactState(this.id);
+  String id;
+  _EditContactState(this.id);
   String _firstName = '';
   String _lastName = '';
   String _email = '';
@@ -24,16 +24,17 @@ class _EditContactState extends State<EditContact> {
   String? _photoUrl;
 
   // handle text editing controller
-  TextEditingController _fnController = TextEditingController();
-  TextEditingController _lnController = TextEditingController();
-  TextEditingController _poController = TextEditingController();
-  TextEditingController _emController = TextEditingController();
-  TextEditingController _adController = TextEditingController();
+  final TextEditingController _fnController = TextEditingController();
+  final TextEditingController _lnController = TextEditingController();
+  final TextEditingController _poController = TextEditingController();
+  final TextEditingController _emController = TextEditingController();
+  final TextEditingController _adController = TextEditingController();
 
   bool isLoading = true;
 
   // db/firebase helper
-  DatabaseReference _databaseReference = FirebaseDatabase.instance.ref();
+  final DatabaseReference _databaseReference =
+      FirebaseDatabase.instance.reference();
 
   @override
   void initState() {
@@ -73,24 +74,24 @@ class _EditContactState extends State<EditContact> {
         _phone.isNotEmpty &&
         _email.isNotEmpty &&
         _address.isNotEmpty) {
-      Contact contact = Contact.withId(this.id, this._firstName, this._lastName,
-          this._phone, this._email, this._address, this._photoUrl);
+      Contact contact = Contact.withId(
+          id, _firstName, _lastName, _phone, _email, _address, _photoUrl!);
 
-      await _databaseReference.child(id!).set(contact.toJson());
+      await _databaseReference.child(id).set(contact.toJson());
       navigateToLostScreen(context);
     } else {
       showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text("Field required"),
-              content: Text("All fields are required"),
+              title: const Text("Field required"),
+              content: const Text("All fields are required"),
               actions: <Widget>[
                 TextButton(
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: Text('Close'))
+                    child: const Text('Close'))
               ],
             );
           });
@@ -99,13 +100,13 @@ class _EditContactState extends State<EditContact> {
 
   // pick Image
   Future pickImage() async {
-    final _picker = ImagePicker();
-    final PickedFile = await _picker.pickImage(
+    final imagePicker = ImagePicker();
+    final pickedFile = await imagePicker.pickImage(
       source: ImageSource.gallery,
       maxHeight: 200.0,
       maxWidth: 200.0,
     );
-    File file = File(PickedFile!.path);
+    File file = File(pickedFile!.path);
     String fileName = basename(file.path);
     uploadImage(file, fileName);
   }
@@ -114,7 +115,7 @@ class _EditContactState extends State<EditContact> {
   void uploadImage(File file, String fileName) async {
     Reference storageReference = FirebaseStorage.instance.ref().child(fileName);
     storageReference.putFile(file).whenComplete(() async {
-      var downloadUrl = storageReference.getDownloadURL();
+      var downloadUrl = await storageReference.getDownloadURL();
 
       setState(() {
         _photoUrl = downloadUrl.toString();
@@ -130,42 +131,47 @@ class _EditContactState extends State<EditContact> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Edit Contact"),
+        title: const Text("Edit Contact"),
       ),
       body: Container(
         child: isLoading
-            ? Center(
+            ? const Center(
                 child: CircularProgressIndicator(),
               )
             : Padding(
-                padding: EdgeInsets.all(20.0),
+                padding: const EdgeInsets.all(20.0),
                 child: ListView(
                   children: <Widget>[
                     //image view
                     Container(
-                        margin: EdgeInsets.only(top: 20.0),
+                        margin: const EdgeInsets.only(top: 20.0),
                         child: GestureDetector(
                           onTap: () {
-                            this.pickImage();
+                            pickImage();
                           },
                           child: Center(
                             child: Container(
-                                width: 100.0,
-                                height: 100.0,
-                                decoration: new BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    image: new DecorationImage(
-                                      fit: BoxFit.cover,
+                                margin: const EdgeInsets.all(20.0),
+                                child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Image(
+                                      width: 150.0,
+                                      height: 150.0,
+                                      fit: BoxFit.contain,
                                       image: _photoUrl == "empty"
-                                          ? AssetImage("assets/images/logo.png")
+                                          ? const AssetImage(
+                                                  "assets/images/logo.png")
                                               as ImageProvider
-                                          : NetworkImage(_photoUrl!),
+                                          : NetworkImage(
+                                              _photoUrl!,
+                                              scale: 1.0,
+                                            ),
                                     ))),
                           ),
                         )),
                     //
                     Container(
-                      margin: EdgeInsets.only(top: 20.0),
+                      margin: const EdgeInsets.only(top: 20.0),
                       child: TextField(
                         onChanged: (value) {
                           setState(() {
@@ -173,16 +179,18 @@ class _EditContactState extends State<EditContact> {
                           });
                         },
                         controller: _fnController,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'First Name',
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(5.0)),
+                          labelStyle: TextStyle(
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black),
                         ),
                       ),
                     ),
                     //
                     Container(
-                      margin: EdgeInsets.only(top: 20.0),
+                      margin: const EdgeInsets.only(top: 20.0),
                       child: TextField(
                         onChanged: (value) {
                           setState(() {
@@ -190,16 +198,18 @@ class _EditContactState extends State<EditContact> {
                           });
                         },
                         controller: _lnController,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Last Name',
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(5.0)),
+                          labelStyle: TextStyle(
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black),
                         ),
                       ),
                     ),
                     //
                     Container(
-                      margin: EdgeInsets.only(top: 20.0),
+                      margin: const EdgeInsets.only(top: 20.0),
                       child: TextField(
                         onChanged: (value) {
                           setState(() {
@@ -208,16 +218,18 @@ class _EditContactState extends State<EditContact> {
                         },
                         controller: _poController,
                         keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Phone',
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(5.0)),
+                          labelStyle: TextStyle(
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black),
                         ),
                       ),
                     ),
                     //
                     Container(
-                      margin: EdgeInsets.only(top: 20.0),
+                      margin: const EdgeInsets.only(top: 20.0),
                       child: TextField(
                         onChanged: (value) {
                           setState(() {
@@ -226,16 +238,18 @@ class _EditContactState extends State<EditContact> {
                         },
                         controller: _emController,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Email',
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(5.0)),
+                          labelStyle: TextStyle(
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black),
                         ),
                       ),
                     ),
                     //
                     Container(
-                      margin: EdgeInsets.only(top: 20.0),
+                      margin: const EdgeInsets.only(top: 20.0),
                       child: TextField(
                         onChanged: (value) {
                           setState(() {
@@ -243,23 +257,31 @@ class _EditContactState extends State<EditContact> {
                           });
                         },
                         controller: _adController,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Address',
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(5.0)),
+                          labelStyle: TextStyle(
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black),
                         ),
                       ),
                     ),
+                    const SizedBox(
+                      height: 10.0,
+                    ),
                     // update button
                     Container(
-                      padding: EdgeInsets.only(top: 20.0),
-                      child: RaisedButton(
-                        padding: EdgeInsets.fromLTRB(100.0, 20.0, 100.0, 20.0),
+                      padding: const EdgeInsets.only(top: 20.0),
+                      child: ElevatedButton(
                         onPressed: () {
                           updateContact(context);
                         },
-                        color: Colors.red,
-                        child: Text(
+                        style: ElevatedButton.styleFrom(
+                          primary: Colors.green,
+                          padding: const EdgeInsets.fromLTRB(
+                              100.0, 20.0, 100.0, 20.0),
+                        ),
+                        child: const Text(
                           "Update",
                           style: TextStyle(
                             fontSize: 20.0,

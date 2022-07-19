@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'edit_contact.dart';
-import '../model/contact.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_login/model/contact.dart';
+import 'package:firebase_login/screens/edit_contact.dart';
 
 class ViewContact extends StatefulWidget {
-  const ViewContact(id, {Key? key}) : super(key: key);
-
+  final String id;
+  ViewContact(this.id);
   @override
-  State<ViewContact> createState() => _ViewContactState();
+  _ViewContactState createState() => _ViewContactState(id);
 }
 
 class _ViewContactState extends State<ViewContact> {
-  DatabaseReference _databaseReference = FirebaseDatabase.instance.ref();
-  String? id;
-  // _ViewContactState(this.id);
+  final DatabaseReference _databaseReference =
+      FirebaseDatabase.instance.reference();
+
+  String id;
+  _ViewContactState(this.id);
   Contact? _contact;
   bool isLoading = true;
 
@@ -34,25 +36,34 @@ class _ViewContactState extends State<ViewContact> {
   }
 
   callAction(String number) async {
-    String url = 'tel:$number';
-    // ignore: deprecated_member_use
-    if (await canLaunch(url)) {
-      // ignore: deprecated_member_use
-      await launch(url);
+    var url = Uri.parse("tel:$number");
+    if (await launchUrl(url)) {
+      await launchUrl(url);
     } else {
-      throw 'Could not call $number';
+      throw 'Could not launch $url';
     }
+
+    // String url = 'tel:$number';
+    // if (await canLaunchUrl(Uri(scheme: url))) {
+    //   await launchUrl(Uri(scheme: url));
+    // } else {
+    //   throw 'Could not call $number';
+    // }
   }
 
   smsAction(String number) async {
-    String url = 'sms:$number';
-    // ignore: deprecated_member_use
-    if (await canLaunch(url)) {
-      // ignore: deprecated_member_use
-      await launch(url);
+    var url = Uri.parse("sms:$number");
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
     } else {
-      throw 'Could not send sms to $number';
+      throw 'Could not launch $url';
     }
+    // String url = 'sms:$number';
+    // if (await canLaunchUrl(Uri(scheme: url))) {
+    //   await launchUrl(Uri(scheme: url));
+    // } else {
+    //   throw 'Could not send sms to $number';
+    // }
   }
 
   navigateToLastScreen() {
@@ -70,22 +81,22 @@ class _ViewContactState extends State<ViewContact> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Delete'),
-            content: Text('Delete Contact?'),
+            title: const Text('Delete'),
+            content: const Text('Delete Contact?'),
             actions: [
               TextButton(
                 onPressed: () async {
                   Navigator.of(context).pop();
                 },
-                child: Text('Cancel'),
+                child: const Text('Cancel'),
               ),
               TextButton(
                 onPressed: () async {
                   Navigator.of(context).pop();
-                  await _databaseReference.child(id!).remove();
+                  await _databaseReference.child(id).remove();
                   navigateToLastScreen();
                 },
-                child: Text('Delete'),
+                child: const Text('Delete'),
               ),
             ],
           );
@@ -97,41 +108,65 @@ class _ViewContactState extends State<ViewContact> {
     // wrap screen in WillPopScreen widget
     return Scaffold(
       appBar: AppBar(
-        title: Text("View Contact"),
+        title: const Text("View Contact"),
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () {
+                navigateToEditScreen(id);
+              }),
+          // IconButton(
+          //     icon: const Icon(Icons.delete),
+          //     onPressed: () {
+          //       deleteContact();
+          //     }),
+        ],
       ),
       body: Container(
         child: isLoading
-            ? Center(
+            ? const Center(
                 child: CircularProgressIndicator(),
               )
             : ListView(
                 children: <Widget>[
                   // header text container
-                  Container(
+                  const SizedBox(
+                    height: 20.0,
+                  ),
+                  SizedBox(
                       height: 200.0,
                       child: Image(
                         //
                         image: _contact!.photoUrl == "empty"
-                            ? AssetImage("assets/images/logo.png")
+                            ? const AssetImage("assets/images/logo.png")
                                 as ImageProvider
-                            : NetworkImage(_contact!.photoUrl),
+                            : NetworkImage(
+                                _contact!.photoUrl,
+                                scale: 1.0,
+                              ),
                         fit: BoxFit.contain,
                       )),
+                  const SizedBox(
+                    height: 20.0,
+                  ),
                   //name
                   Card(
                     elevation: 2.0,
                     child: Container(
-                        margin: EdgeInsets.all(20.0),
+                        margin: const EdgeInsets.all(20.0),
                         width: double.maxFinite,
                         child: Row(
                           children: <Widget>[
-                            Icon(Icons.perm_identity),
+                            const Icon(
+                              Icons.perm_identity,
+                              color: Colors.purple,
+                            ),
                             Container(
                               width: 10.0,
                             ),
                             Text(
                               "${_contact!.firstName} ${_contact!.lastName}",
-                              style: TextStyle(fontSize: 20.0),
+                              style: const TextStyle(fontSize: 20.0),
                             ),
                           ],
                         )),
@@ -140,18 +175,40 @@ class _ViewContactState extends State<ViewContact> {
                   Card(
                     elevation: 2.0,
                     child: Container(
-                        margin: EdgeInsets.all(20.0),
+                        margin: const EdgeInsets.all(20.0),
                         width: double.maxFinite,
                         child: Row(
                           children: <Widget>[
-                            Icon(Icons.phone),
+                            const Icon(
+                              Icons.phone_android_rounded,
+                              color: Colors.purple,
+                            ),
                             Container(
                               width: 10.0,
                             ),
                             Text(
                               _contact!.phone,
-                              style: TextStyle(fontSize: 20.0),
+                              style: const TextStyle(fontSize: 20.0),
                             ),
+                            Container(
+                              width: 120.0,
+                            ),
+                            IconButton(
+                              iconSize: 25.0,
+                              icon: const Icon(Icons.phone),
+                              color: Colors.blue,
+                              onPressed: () {
+                                callAction(_contact!.phone);
+                              },
+                            ),
+                            IconButton(
+                              iconSize: 25.0,
+                              icon: const Icon(Icons.message),
+                              color: Colors.orangeAccent,
+                              onPressed: () {
+                                smsAction(_contact!.phone);
+                              },
+                            )
                           ],
                         )),
                   ),
@@ -159,17 +216,20 @@ class _ViewContactState extends State<ViewContact> {
                   Card(
                     elevation: 2.0,
                     child: Container(
-                        margin: EdgeInsets.all(20.0),
+                        margin: const EdgeInsets.all(20.0),
                         width: double.maxFinite,
                         child: Row(
                           children: <Widget>[
-                            Icon(Icons.email),
+                            const Icon(
+                              Icons.email,
+                              color: Colors.purple,
+                            ),
                             Container(
                               width: 10.0,
                             ),
                             Text(
                               _contact!.email,
-                              style: TextStyle(fontSize: 20.0),
+                              style: const TextStyle(fontSize: 20.0),
                             ),
                           ],
                         )),
@@ -178,77 +238,98 @@ class _ViewContactState extends State<ViewContact> {
                   Card(
                     elevation: 2.0,
                     child: Container(
-                        margin: EdgeInsets.all(20.0),
+                        margin: const EdgeInsets.all(20.0),
                         width: double.maxFinite,
                         child: Row(
                           children: <Widget>[
-                            Icon(Icons.home),
+                            const Icon(
+                              Icons.home,
+                              color: Colors.purple,
+                            ),
                             Container(
                               width: 10.0,
                             ),
                             Text(
                               _contact!.address,
-                              style: TextStyle(fontSize: 20.0),
+                              style: const TextStyle(fontSize: 20.0),
                             ),
                           ],
                         )),
                   ),
                   // call and sms
-                  Card(
-                    elevation: 2.0,
-                    child: Container(
-                        margin: EdgeInsets.all(20.0),
-                        width: double.maxFinite,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: <Widget>[
-                            IconButton(
-                              iconSize: 30.0,
-                              icon: Icon(Icons.phone),
-                              color: Colors.red,
-                              onPressed: () {
-                                callAction(_contact!.phone);
-                              },
-                            ),
-                            IconButton(
-                              iconSize: 30.0,
-                              icon: Icon(Icons.message),
-                              color: Colors.red,
-                              onPressed: () {
-                                smsAction(_contact!.phone);
-                              },
-                            )
-                          ],
-                        )),
-                  ),
+                  // Card(
+                  //   elevation: 2.0,
+                  //   child: Container(
+                  //       margin: const EdgeInsets.all(20.0),
+                  //       width: double.maxFinite,
+                  //       child: Row(
+                  //         mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  //         children: <Widget>[
+                  //           IconButton(
+                  //             iconSize: 30.0,
+                  //             icon: const Icon(Icons.phone),
+                  //             color: Colors.blue,
+                  //             onPressed: () {
+                  //               callAction(_contact!.phone);
+                  //             },
+                  //           ),
+                  //           IconButton(
+                  //             iconSize: 30.0,
+                  //             icon: const Icon(Icons.message),
+                  //             color: Colors.orangeAccent,
+                  //             onPressed: () {
+                  //               smsAction(_contact!.phone);
+                  //             },
+                  //           )
+                  //         ],
+                  //       )),
+                  // ),
                   // edit and delete
-                  Card(
-                    elevation: 2.0,
-                    child: Container(
-                        margin: EdgeInsets.all(20.0),
-                        width: double.maxFinite,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: <Widget>[
-                            IconButton(
-                              iconSize: 30.0,
-                              icon: Icon(Icons.edit),
-                              color: Colors.red,
-                              onPressed: () {
-                                navigateToEditScreen(id);
-                              },
-                            ),
-                            IconButton(
-                              iconSize: 30.0,
-                              icon: Icon(Icons.delete),
-                              color: Colors.red,
-                              onPressed: () {
-                                deleteContact();
-                              },
-                            )
-                          ],
-                        )),
-                  )
+                  // Card(
+                  //   elevation: 2.0,
+                  //   child: Container(
+                  //     margin: const EdgeInsets.all(20.0),
+                  //     width: double.maxFinite,
+                  //     child: Row(
+                  //       mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  //       children: <Widget>[
+                  //         IconButton(
+                  //           iconSize: 30.0,
+                  //           icon: const Icon(Icons.edit),
+                  //           color: Colors.green,
+                  //           onPressed: () {
+                  //             navigateToEditScreen(id);
+                  //           },
+                  //         ),
+                  //         IconButton(
+                  //           iconSize: 30.0,
+                  //           icon: const Icon(Icons.delete),
+                  //           color: Colors.red,
+                  //           onPressed: () {
+                  //             deleteContact();
+                  //           },
+                  //         )
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ),
+                  const SizedBox(
+                    height: 30.0,
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      deleteContact();
+                    },
+                    icon: const Icon(Icons.delete),
+                    label: const Text(
+                      "Delete",
+                      style: TextStyle(fontSize: 18.0),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding:
+                          const EdgeInsets.fromLTRB(100.0, 20.0, 100.0, 20.0),
+                    ),
+                  ),
                 ],
               ),
       ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'Screens/HomePage.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_login/Screens/HomePage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Firebase Login',
       theme: ThemeData(
-        primarySwatch: Colors.red,
+        primarySwatch: Colors.purple,
       ),
       home: const HomePage(),
     );
